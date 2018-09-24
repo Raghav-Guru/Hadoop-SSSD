@@ -1,10 +1,12 @@
 **Install and configure SSSD on Hadoop cluster hosts**
 
-Following steps details about configuring sssd on all Node Managers in a secure clusters to fetch the user info while a job is submitted. If this SSSD is not desired you may would need to create and manager users locally in all node managers.Following procedure is followed is verified in one of the cluster hosts: 
+In a secure cluster, pre-requisites for allowing users to run jobs is to make sure the user running the job is available on all node managers. One way to make sure users exists on all the node managers and namenode is to create local accounts or to configure ldap client like nscd or sssd so that OS can pull the users from AD/LDAP. 
+
+Below steps gives the details about setting up sssd on Linux to get user info from AD using LDAP provider. This configuration can be followed if Linux host is not required to be joined to AD domain.
 
 **Step 1:** Install sssd pkgs: 
 
-    #yum install sssd sssd-clients
+    #yum install sssd sssd-clients -y
 
 **Step 2:** Configured sssd.conf with below config:
 
@@ -62,7 +64,7 @@ Following steps details about configuring sssd on all Node Managers in a secure 
 
 **Step 3:** Import SSL certs of AD server to the cacerts db under /etc/openldap/certs:
 
-    #”echo | openssl s_client -connect <AD-Server>:636 2>&1 | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /var/tmp/ad.crt”
+    #"echo | openssl s_client -connect <AD-Server>:636 2>&1 | sed --quiet '/-BEGIN CERTIFICATE-/,/-END CERTIFICATE-/p' > /var/tmp/ad.crt"
     #cd /etc/openldap/certs
     #certutil –A –d . –n “AD cert” –t “C,,” –i /var/tmp/ad.crt
 
@@ -77,5 +79,3 @@ Following steps details about configuring sssd on all Node Managers in a secure 
     #authconfig --enablesssdauth --update
 
 Login to the host with AD accounts and verify the access to node. As sssd does caching of users on first start, sssd startup may take time as it has to connect to AD to get the user and cache it. 
-
-
